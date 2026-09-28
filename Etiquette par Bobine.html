@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur d'Imposition & Rendement Flexo</title>
+    <style>
+        :root {
+            --primary: #8B0000;
+            --primary-dark: #660000;
+            --secondary: #2C3E50;
+            --bg: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --border: #E2E8F0;
+            --text: #1A202C;
+            --text-muted: #718096;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 30px 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1050px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 25px;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .header-title p.subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .print-date {
+            display: none;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 16px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-item {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: var(--secondary);
+        }
+
+        input[type="number"], select {
+            padding: 10px 14px;
+            border: 1px solid #CBD5E0;
+            border-radius: 6px;
+            font-size: 15px;
+            background-color: white;
+        }
+
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.15);
+        }
+
+        .actions-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-pdf {
+            background-color: #2C3E50;
+        }
+
+        .btn-pdf:hover {
+            background-color: #1A252F;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--secondary);
+            border: 1px solid #CBD5E0;
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+
+        .btn-outline:hover {
+            background-color: #EDF2F7;
+        }
+
+        .btn-danger {
+            background-color: #E53E3E;
+            color: white;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        .btn-danger:hover {
+            background-color: #C53030;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #F7FAFC;
+            color: var(--secondary);
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover {
+            background-color: #EDF2F7;
+        }
+
+        th.sort-active {
+            color: var(--primary);
+            background-color: #E2E8F0;
+        }
+
+        .formula-info {
+            font-size: 13px;
+            color: var(--text-muted);
+            background: #EDF2F7;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        .badge-opti {
+            display: inline-block;
+            background-color: #DEF7EC;
+            color: #03543F;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 6px;
+        }
+
+        .saved-notice {
+            font-size: 12px;
+            color: #2F855A;
+            font-weight: 600;
+            margin-left: auto;
+            display: none;
+        }
+
+        /* STYLES SPÉCIFIQUES POUR L'IMPRESSION A4 ET EXPORT PDF */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
+
+            body {
+                background-color: white !important;
+                padding: 0 !important;
+                color: black !important;
+            }
+
+            .container {
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+
+            header {
+                border-bottom: 2px solid var(--primary) !important;
+                margin-bottom: 15px !important;
+                padding-bottom: 10px !important;
+            }
+
+            .print-date {
+                display: block !important;
+            }
+
+            .actions-bar, .btn-danger, #saved-notice, .action-col, .sort-selector-container {
+                display: none !important;
+            }
+
+            .card {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+
+            input[type="number"] {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                font-weight: bold !important;
+                font-size: 15px !important;
+            }
+
+            .badge-opti {
+                border: 1px solid #03543F !important;
+            }
+
+            table {
+                border: 1px solid #CBD5E0 !important;
+            }
+
+            th {
+                background-color: #EDF2F7 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .formula-info {
+                background-color: #F7FAFC !important;
+                border: 1px solid var(--border) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="header-title">
+            <h1>Calculateur Flexo — Imposition & Rendement au Métrage</h1>
+            <p class="subtitle">Calculateur de rendement d'étiquettes et formes de découpe rotatives - Crée par Guillaume C.</p>
+        </div>
+        <div class="print-date" id="print-date-display">
+            <!-- Rempli en JS -->
+        </div>
+    </header>
+
+    <div class="card">
+        <div class="card-title">Paramètres de production & Résultats</div>
+        
+        <div class="input-group">
+            <div class="input-item">
+                <label for="label-height">Hauteur étiquette (mm) :</label>
+                <input type="number" id="label-height" value="90" step="1.0" min="1.0" oninput="recalculateAll(true)">
+            </div>
+            <div class="input-item">
+                <label for="target-meters">Métrage souhaité (m) :</label>
+                <input type="number" id="target-meters" value="1000" step="10" min="1" oninput="recalculateAll(false)">
+            </div>
+            <div class="input-item sort-selector-container">
+                <label for="sort-mode">Trier la liste par :</label>
+                <select id="sort-mode" onchange="changeSortMode(this.value)">
+                    <option value="gap4">Espace le plus proche de 4 mm</option>
+                    <option value="z">Nombre de dents (Z croissant)</option>
+                    <option value="poses">Nombre de poses (décroissant)</option>
+                    <option value="labels">Total d'étiquettes produites</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="actions-bar">
+            <button class="btn btn-pdf" onclick="exportToPDF()">📄 Imprimer / Enregistrer en PDF</button>
+            <button class="btn" onclick="addCylinderRow()">+ Ajouter cylindre</button>
+            <button class="btn btn-outline" onclick="resetToDefaultCylinders()">Réinitialiser le parc par défaut</button>
+            <span id="saved-notice" class="saved-notice">✓ Parc cylindres sauvegardé</span>
+        </div>
+
+        <table id="cylinders-table">
+            <thead>
+                <tr>
+                    <th id="th-z" onclick="changeSortMode('z')">Dents (Z) <span id="sort-icon-z"></span></th>
+                    <th>Développé</th>
+                    <th id="th-poses" onclick="changeSortMode('poses')">Poses <span id="sort-icon-poses"></span></th>
+                    <th id="th-gap4" onclick="changeSortMode('gap4')">Inter-pose <span id="sort-icon-gap4"></span></th>
+                    <th id="th-labels" onclick="changeSortMode('labels')">Total étiquettes <span id="sort-icon-labels"></span></th>
+                    <th>Métrage réel</th>
+                    <th class="action-col">Action</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Généré dynamiquement -->
+            </tbody>
+        </table>
+
+        <div class="formula-info">
+            • <strong>Pas standard :</strong> 1/8" (3,175 mm) par dent, développé arrondi selon la table RotoMetrics.<br>
+            • <strong>Nombre de poses auto :</strong> Calculé sur la base de 4 mm d'inter-pose théorique ($Développé / (Hauteur + 4 mm)$).<br>
+            • <strong>Calcul du métrage :</strong> Ajusté au nombre de tours de cylindres entier immédiatement supérieur pour garantir au moins le métrage demandé.
+        </div>
+    </div>
+</div>
+
+<script>
+    // Nouveaux cylindres par défaut
+    const defaultZList = [65, 72, 80, 89, 94, 99, 105];
+    let cylinderList = [];
+    let nextId = 1;
+    let currentSortMode = 'gap4'; // Tri par défaut sur l'inter-pose le plus proche de 4mm
+
+    // Calcul du développé arrondi selon la table RotoMetrics
+    function getRotometricsRepeat(z) {
+        return Math.round((z * 3.175 + Number.EPSILON) * 100) / 100;
+    }
+
+    function loadCylindersFromStorage() {
+        const saved = localStorage.getItem('flexo_parc_cylindres_v2');
+        if (saved) {
+            try {
+                const zArray = JSON.parse(saved);
+                cylinderList = zArray.map(z => ({ id: nextId++, z: z, manualPoses: null }));
+            } catch (e) {
+                initDefaultCylinders();
+            }
+        } else {
+            initDefaultCylinders();
+        }
+    }
+
+    function initDefaultCylinders() {
+        cylinderList = defaultZList.map(z => ({ id: nextId++, z: z, manualPoses: null }));
+        saveCylindersToStorage();
+    }
+
+    function saveCylindersToStorage() {
+        const zArray = cylinderList.map(item => item.z);
+        localStorage.setItem('flexo_parc_cylindres_v2', JSON.stringify(zArray));
+        
+        const notice = document.getElementById('saved-notice');
+        if (notice) {
+            notice.style.display = 'inline';
+            setTimeout(() => { notice.style.display = 'none'; }, 1500);
+        }
+    }
+
+    function resetToDefaultCylinders() {
+        if (confirm("Voulez-vous réinitialiser le parc de cylindres avec la liste par défaut (65, 72, 80, 89, 94, 99, 105) ?")) {
+            localStorage.removeItem('flexo_parc_cylindres_v2');
+            loadCylindersFromStorage();
+            recalculateAll(true);
+        }
+    }
+
+    function changeSortMode(mode) {
+        currentSortMode = mode;
+        document.getElementById('sort-mode').value = mode;
+        recalculateAll(false);
+    }
+
+    function recalculateAll(resetManualPoses = false) {
+        const labelHeight = parseFloat(document.getElementById('label-height').value) || 0;
+        const targetMeters = parseFloat(document.getElementById('target-meters').value) || 0;
+
+        cylinderList.forEach(item => {
+            if (resetManualPoses) {
+                item.manualPoses = null;
+            }
+
+            const devMm = getRotometricsRepeat(item.z);
+            
+            // Calcul automatique des poses en ciblant un inter-pose d'environ 4mm
+            if (item.manualPoses === null) {
+                if (labelHeight > 0) {
+                    item.computedPoses = Math.floor(devMm / (labelHeight + 4));
+                    // Si 0 pose avec +4mm mais que l'étiquette rentre seule :
+                    if (item.computedPoses === 0 && devMm >= labelHeight) {
+                        item.computedPoses = 1;
+                    }
+                } else {
+                    item.computedPoses = 0;
+                }
+            } else {
+                item.computedPoses = item.manualPoses;
+            }
+
+            // Calcul de l'inter-pose
+            if (item.computedPoses > 0 && labelHeight > 0) {
+                item.gap = (devMm - (item.computedPoses * labelHeight)) / item.computedPoses;
+            } else {
+                item.gap = 9999;
+            }
+
+            // Calcul du nombre d'étiquettes sur le métrage cible
+            if (item.computedPoses > 0 && targetMeters > 0 && devMm > 0) {
+                const devMeters = devMm / 1000;
+                const totalTours = Math.ceil(targetMeters / devMeters);
+                item.totalLabels = totalTours * item.computedPoses;
+                item.realMeters = (totalTours * devMeters).toFixed(2);
+            } else {
+                item.totalLabels = 0;
+                item.realMeters = "0";
+            }
+        });
+
+        // Application du tri choisi
+        cylinderList.sort((a, b) => {
+            if (currentSortMode === 'gap4') {
+                // Tri par écart absolu par rapport à 4 mm
+                const diffA = Math.abs(a.gap - 4.0);
+                const diffB = Math.abs(b.gap - 4.0);
+                return diffA - diffB;
+            } else if (currentSortMode === 'z') {
+                return a.z - b.z;
+            } else if (currentSortMode === 'poses') {
+                return b.computedPoses - a.computedPoses;
+            } else if (currentSortMode === 'labels') {
+                return b.totalLabels - a.totalLabels;
+            }
+        });
+
+        updateHeaderStyles();
+        renderTable();
+    }
+
+    function updateHeaderStyles() {
+        ['gap4', 'z', 'poses', 'labels'].forEach(mode => {
+            const th = document.getElementById('th-' + mode);
+            const icon = document.getElementById('sort-icon-' + mode);
+            if (th && icon) {
+                if (mode === currentSortMode) {
+                    th.classList.add('sort-active');
+                    icon.innerText = (mode === 'z' || mode === 'gap4') ? ' ▲' : ' ▼';
+                } else {
+                    th.classList.remove('sort-active');
+                    icon.innerText = '';
+                }
+            }
+        });
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+
+        // Déterminer quel cylindre a l'inter-pose le plus proche de 4 mm
+        let bestGap4Id = null;
+        let minDiff = 9999;
+        cylinderList.forEach(item => {
+            if (item.gap !== 9999) {
+                const diff = Math.abs(item.gap - 4.0);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    bestGap4Id = item.id;
+                }
+            }
+        });
+
+        cylinderList.forEach((item) => {
+            const devMm = getRotometricsRepeat(item.z);
+            const gapDisplay = item.gap === 9999 ? '-' : item.gap.toFixed(2).replace('.', ',');
+            const isNegative = item.gap < 0;
+            const isBestGap = item.id === bestGap4Id && item.gap !== 9999;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <input type="number" value="${item.z}" min="1" style="width: 80px;" onchange="updateZ(${item.id}, this.value)">
+                </td>
+                <td><strong>${devMm.toFixed(2).replace('.', ',')} mm</strong></td>
+                <td>
+                    <input type="number" value="${item.computedPoses}" min="1" style="width: 75px;" onchange="updatePoses(${item.id}, this.value)">
+                </td>
+                <td>
+                    <span style="color: ${isNegative ? '#E53E3E' : '#2C3E50'}; font-weight: bold; font-size: 15px;">
+                        ${gapDisplay} mm
+                    </span>
+                    ${isBestGap ? '<span class="badge-opti">Plus proche de 4 mm</span>' : ''}
+                </td>
+                <td>
+                    <strong style="color: #2F855A; font-size: 15px;">
+                        ${item.totalLabels.toLocaleString('fr-FR')}
+                    </strong> étiquettes
+                </td>
+                <td>${item.realMeters.replace('.', ',')} m</td>
+                <td class="action-col">
+                    <button class="btn btn-danger" onclick="removeRow(${item.id})">Supprimer</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function addCylinderRow() {
+        cylinderList.push({ id: nextId++, z: 100, manualPoses: null });
+        saveCylindersToStorage();
+        recalculateAll(false);
+    }
+
+    function removeRow(id) {
+        cylinderList = cylinderList.filter(item => item.id !== id);
+        saveCylindersToStorage();
+        recalculateAll(false);
+    }
+
+    function updateZ(id, val) {
+        const item = cylinderList.find(i => i.id === id);
+        if (item) {
+            item.z = parseFloat(val) || 0;
+            item.manualPoses = null;
+            saveCylindersToStorage();
+            recalculateAll(false);
+        }
+    }
+
+    function updatePoses(id, val) {
+        const item = cylinderList.find(i => i.id === id);
+        if (item) {
+            item.manualPoses = parseInt(val, 10) || 0;
+            recalculateAll(false);
+        }
+    }
+
+    function exportToPDF() {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR') + ' à ' + now.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+        document.getElementById('print-date-display').innerText = 'Édité le : ' + dateStr;
+        window.print();
+    }
+
+    // Initialisation
+    loadCylindersFromStorage();
+    recalculateAll(true);
+</script>
+
+</body>
+</html>
