@@ -309,7 +309,7 @@
         <div class="card-title">Développé de l'étiquette & Résultats d'imposition</div>
         
         <div class="input-group">
-            <div style="max-width: 280px;">
+            <div style="max-width: 2px;">
                 <label for="label-height">Développé étiquette / Hauteur (mm) :</label>
                 <input type="number" id="label-height" value="100" step="1.0" min="1.0" oninput="recalculateAll(true)">
             </div>
@@ -354,7 +354,7 @@
 </div>
 
 <script>
-    const defaultZList = [80, 89, 96, 112, 120, 136, 160];
+    const defaultZList = [65, 72, 80, 89, 94, 99, 105];
     let cylinderList = [];
     let nextId = 1;
     let currentSortMode = 'z'; // 'z' par défaut
